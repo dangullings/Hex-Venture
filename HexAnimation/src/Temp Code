@@ -1,0 +1,1337 @@
+	public static boolean isAffordableCombine(int p, int b, int f, int ff){
+		boolean isAffordable = false;
+		int tempExpense=0, tempIncome=0, tempRank=0, tempCost=0;
+		
+		tempIncome=player[p].base[b].getHexesLinked()+player[p].base[b].getBonus();
+		tempRank=(player[p].base[b].fighter[f].getRank()+player[p].base[b].fighter[ff].getRank());
+		
+		if (tempRank>4)
+			tempRank=4;
+		
+		if (tempRank==2)
+			tempCost=FIGHTER_RANK_TWO_EXPENSE;
+		else if (tempRank==3)
+			tempCost=FIGHTER_RANK_THREE_EXPENSE;
+		else if (tempRank==4)
+			tempCost=FIGHTER_RANK_FOUR_EXPENSE;
+		
+		for (int fighter=0;fighter<MAX_BASE_FIGHTERS;fighter++){
+			if ((player[p].base[b].fighter[fighter].isAlive())&&(fighter!=f)&&(fighter!=ff))
+				tempExpense+=player[p].base[b].fighter[fighter].getCost();
+		}
+		tempExpense+=tempCost;
+		
+		if (tempIncome>=tempExpense)
+			isAffordable=true;
+		
+		return isAffordable;
+	}
+	
+	public static boolean availablePowerMove(int p, int b, int f){
+		boolean isAvailable=false;
+		selectFighter(p,b,f);
+		
+		for (int h=0;h<BSIZE;h++){
+			if (hexes[h].isHighlighted()){
+				if (hexes[h].occupation.getPlayer()!=p){
+					if (hexes[h].occupation.getOccupiedBy()=="base"){
+						isAvailable=true;
+					}
+					if (hexes[h].occupation.getOccupiedBy()=="fighter"){
+						isAvailable=true;
+					}
+				}
+			}
+		}
+		return isAvailable;
+	}
+	
+	public static void SaveGameStatus(){
+		for (int h=0;h<BSIZE;h++){
+			hexesSave[h].setState(hexes[h].getState());
+			hexesSave[h].setSetColor(player[hexes[h].occupation.getPlayer()].getR(), player[hexes[h].occupation.getPlayer()].getG(), player[hexes[h].occupation.getPlayer()].getB());
+			hexesSave[h].occupation.setPlayer(hexes[h].occupation.getPlayer());
+			hexesSave[h].occupation.setBase(hexes[h].occupation.getBase());
+			hexesSave[h].occupation.setFighter(hexes[h].occupation.getFighter());
+			hexesSave[h].occupation.setFighterRank(hexes[h].occupation.getFighterRank());
+			hexesSave[h].occupation.setOccupiedBy(hexes[h].occupation.getOccupiedBy());
+			hexesSave[h].occupation.setPlayerDeath(hexes[h].occupation.getPlayerDeath());
+		}
+		for (int i=0;i<=numPlayers;i++){
+			playerSave[i].setMoney(-playerSave[i].getMoney());
+			playerSave[i].setMoney(player[i].getMoney());
+			playerSave[i].setHexesLinked(-playerSave[i].getHexesLinked());
+			playerSave[i].setHexesLinked(player[i].getHexesLinked());
+			playerSave[i].setNumBases(-playerSave[i].getNumBases());
+			playerSave[i].setNumBases(player[i].getNumBases());
+			
+			for (int ii=0;ii<player[i].getNumBases();ii++){
+				playerSave[i].base[ii].setAlive(player[i].base[ii].isAlive());
+				playerSave[i].base[ii].setHexesLinked(-playerSave[i].base[ii].getHexesLinked());
+				playerSave[i].base[ii].setHexesLinked(player[i].base[ii].getHexesLinked());
+				playerSave[i].base[ii].setMoney(-playerSave[i].base[ii].getMoney());
+				playerSave[i].base[ii].setMoney(player[i].base[ii].getMoney());
+				playerSave[i].base[ii].setRank(player[i].base[ii].getRank());
+				playerSave[i].base[ii].setHexNum(player[i].base[ii].getHexNum());
+				playerSave[i].base[ii].setCol(player[i].base[ii].getCol());
+				playerSave[i].base[ii].setRow(player[i].base[ii].getRow());
+				//playerSave[i].base[ii].setNumFighters(-playerSave[i].base[ii].getNumFighters());
+				//playerSave[i].base[ii].setNumFighters(player[i].base[ii].getNumFighters());
+				
+				for (int iii=0;iii<player[i].base[ii].getNumFighters();iii++){
+					playerSave[i].base[ii].fighter[iii].setAlive(player[i].base[ii].fighter[iii].isAlive());
+					playerSave[i].base[ii].fighter[iii].setMoved(player[i].base[ii].fighter[iii].isMoved());
+					playerSave[i].base[ii].fighter[iii].setBaseNum(player[i].base[ii].fighter[iii].getBaseNum());
+					playerSave[i].base[ii].fighter[iii].setCost(player[i].base[ii].fighter[iii].getCost());
+					playerSave[i].base[ii].fighter[iii].setRank(player[i].base[ii].fighter[iii].getRank());
+					playerSave[i].base[ii].fighter[iii].setHexNum(player[i].base[ii].fighter[iii].getHexNum());
+					playerSave[i].base[ii].fighter[iii].setX(player[i].base[ii].fighter[iii].getX());
+					playerSave[i].base[ii].fighter[iii].setY(player[i].base[ii].fighter[iii].getY());
+				}
+			}
+		}
+	}
+	
+	public static void resetGameStatus(){
+		for (int h=0;h<BSIZE;h++){
+			hexes[h].setState(hexesSave[h].getState());
+			hexes[h].setSetColor(player[hexesSave[h].occupation.getPlayer()].getR(), player[hexesSave[h].occupation.getPlayer()].getG(), player[hexesSave[h].occupation.getPlayer()].getB());
+			hexes[h].occupation.setPlayer(hexesSave[h].occupation.getPlayer());
+			hexes[h].occupation.setBase(hexesSave[h].occupation.getBase());
+			hexes[h].occupation.setFighter(hexesSave[h].occupation.getFighter());
+			hexes[h].occupation.setFighterRank(hexesSave[h].occupation.getFighterRank());
+			hexes[h].occupation.setOccupiedBy(hexesSave[h].occupation.getOccupiedBy());
+			hexes[h].occupation.setPlayerDeath(hexesSave[h].occupation.getPlayerDeath());
+		}
+		for (int i=0;i<=numPlayers;i++){
+			player[i].setMoney(-player[i].getMoney());
+			player[i].setMoney(playerSave[i].getMoney());
+			player[i].setHexesLinked(-player[i].getHexesLinked());
+			player[i].setHexesLinked(playerSave[i].getHexesLinked());
+			player[i].setNumBases(-player[i].getNumBases());
+			player[i].setNumBases(playerSave[i].getNumBases());
+			
+			for (int ii=0;ii<player[i].getNumBases();ii++){
+				player[i].base[ii].setAlive(playerSave[i].base[ii].isAlive());
+				player[i].base[ii].setHexesLinked(-player[i].base[ii].getHexesLinked());
+				player[i].base[ii].setHexesLinked(playerSave[i].base[ii].getHexesLinked());
+				player[i].base[ii].setMoney(-player[i].base[ii].getMoney());
+				player[i].base[ii].setMoney(playerSave[i].base[ii].getMoney());
+				player[i].base[ii].setRank(playerSave[i].base[ii].getRank());
+				player[i].base[ii].setHexNum(playerSave[i].base[ii].getHexNum());
+				player[i].base[ii].setCol(playerSave[i].base[ii].getCol());
+				player[i].base[ii].setRow(playerSave[i].base[ii].getRow());
+				//player[i].base[ii].setNumFighters(-player[i].base[ii].getNumFighters());
+				//player[i].base[ii].setNumFighters(playerSave[i].base[ii].getNumFighters());
+				
+				for (int iii=0;iii<player[i].base[ii].getNumFighters();iii++){
+					player[i].base[ii].fighter[iii].setAlive(playerSave[i].base[ii].fighter[iii].isAlive());
+					player[i].base[ii].fighter[iii].setMoved(playerSave[i].base[ii].fighter[iii].isMoved());
+					player[i].base[ii].fighter[iii].setBaseNum(playerSave[i].base[ii].fighter[iii].getBaseNum());
+					player[i].base[ii].fighter[iii].setCost(playerSave[i].base[ii].fighter[iii].getCost());
+					player[i].base[ii].fighter[iii].setRank(playerSave[i].base[ii].fighter[iii].getRank());
+					player[i].base[ii].fighter[iii].setHexNum(playerSave[i].base[ii].fighter[iii].getHexNum());
+					player[i].base[ii].fighter[iii].setX(playerSave[i].base[ii].fighter[iii].getX());
+					player[i].base[ii].fighter[iii].setY(playerSave[i].base[ii].fighter[iii].getY());
+				}
+			}
+		}
+	}
+	
+	public static void saveAiTurn(){
+		for (int h=0;h<BSIZE;h++){
+			hexesScoreSave[h].setState(hexes[h].getState());
+			hexesScoreSave[h].setSetColor(player[hexes[h].occupation.getPlayer()].getR(), player[hexes[h].occupation.getPlayer()].getG(), player[hexes[h].occupation.getPlayer()].getB());
+			hexesScoreSave[h].occupation.setPlayer(hexes[h].occupation.getPlayer());
+			hexesScoreSave[h].occupation.setBase(hexes[h].occupation.getBase());
+			hexesScoreSave[h].occupation.setFighter(hexes[h].occupation.getFighter());
+			hexesScoreSave[h].occupation.setFighterRank(hexes[h].occupation.getFighterRank());
+			hexesScoreSave[h].occupation.setOccupiedBy(hexes[h].occupation.getOccupiedBy());
+			hexesScoreSave[h].occupation.setPlayerDeath(hexes[h].occupation.getPlayerDeath());
+		}
+		for (int i=0;i<=numPlayers;i++){
+			playerScoreSave[i].setMoney(-playerScoreSave[i].getMoney());
+			playerScoreSave[i].setMoney(player[i].getMoney());
+			playerScoreSave[i].setHexesLinked(-playerScoreSave[i].getHexesLinked());
+			playerScoreSave[i].setHexesLinked(player[i].getHexesLinked());
+			playerScoreSave[i].setNumBases(-playerScoreSave[i].getNumBases());
+			playerScoreSave[i].setNumBases(player[i].getNumBases());
+			
+			for (int ii=0;ii<player[i].getNumBases();ii++){
+				playerScoreSave[i].base[ii].setAlive(player[i].base[ii].isAlive());
+				playerScoreSave[i].base[ii].setHexesLinked(-playerScoreSave[i].base[ii].getHexesLinked());
+				playerScoreSave[i].base[ii].setHexesLinked(player[i].base[ii].getHexesLinked());
+				playerScoreSave[i].base[ii].setMoney(-playerScoreSave[i].base[ii].getMoney());
+				playerScoreSave[i].base[ii].setMoney(player[i].base[ii].getMoney());
+				playerScoreSave[i].base[ii].setRank(player[i].base[ii].getRank());
+				playerScoreSave[i].base[ii].setHexNum(player[i].base[ii].getHexNum());
+				playerScoreSave[i].base[ii].setCol(player[i].base[ii].getCol());
+				playerScoreSave[i].base[ii].setRow(player[i].base[ii].getRow());
+				//playerScoreSave[i].base[ii].setNumFighters(-playerScoreSave[i].base[ii].getNumFighters());
+				//playerScoreSave[i].base[ii].setNumFighters(player[i].base[ii].getNumFighters());
+				
+				for (int iii=0;iii<player[i].base[ii].getNumFighters();iii++){
+					playerScoreSave[i].base[ii].fighter[iii].setAlive(player[i].base[ii].fighter[iii].isAlive());
+					playerScoreSave[i].base[ii].fighter[iii].setMoved(player[i].base[ii].fighter[iii].isMoved());
+					playerScoreSave[i].base[ii].fighter[iii].setBaseNum(player[i].base[ii].fighter[iii].getBaseNum());
+					playerScoreSave[i].base[ii].fighter[iii].setCost(player[i].base[ii].fighter[iii].getCost());
+					playerScoreSave[i].base[ii].fighter[iii].setRank(player[i].base[ii].fighter[iii].getRank());
+					playerScoreSave[i].base[ii].fighter[iii].setHexNum(player[i].base[ii].fighter[iii].getHexNum());
+					playerScoreSave[i].base[ii].fighter[iii].setX(player[i].base[ii].fighter[iii].getX());
+					playerScoreSave[i].base[ii].fighter[iii].setY(player[i].base[ii].fighter[iii].getY());
+				}
+			}
+		}
+	}
+	
+	public static void setGameStatus(){
+		for (int h=0;h<BSIZE;h++){
+			hexes[h].setState(hexesScoreSave[h].getState());
+			hexes[h].setSetColor(player[hexesScoreSave[h].occupation.getPlayer()].getR(), player[hexesScoreSave[h].occupation.getPlayer()].getG(), player[hexesScoreSave[h].occupation.getPlayer()].getB());
+			hexes[h].occupation.setPlayer(hexesScoreSave[h].occupation.getPlayer());
+			hexes[h].occupation.setBase(hexesScoreSave[h].occupation.getBase());
+			hexes[h].occupation.setFighter(hexesScoreSave[h].occupation.getFighter());
+			hexes[h].occupation.setFighterRank(hexesScoreSave[h].occupation.getFighterRank());
+			hexes[h].occupation.setOccupiedBy(hexesScoreSave[h].occupation.getOccupiedBy());
+			hexes[h].occupation.setPlayerDeath(hexesScoreSave[h].occupation.getPlayerDeath());
+		}
+		for (int i=0;i<=numPlayers;i++){
+			player[i].setMoney(-player[i].getMoney());
+			player[i].setMoney(playerScoreSave[i].getMoney());
+			player[i].setHexesLinked(-player[i].getHexesLinked());
+			player[i].setHexesLinked(playerScoreSave[i].getHexesLinked());
+			player[i].setNumBases(-player[i].getNumBases());
+			player[i].setNumBases(playerScoreSave[i].getNumBases());
+			
+			for (int ii=0;ii<player[i].getNumBases();ii++){
+				player[i].base[ii].setAlive(playerScoreSave[i].base[ii].isAlive());
+				player[i].base[ii].setHexesLinked(-player[i].base[ii].getHexesLinked());
+				player[i].base[ii].setHexesLinked(playerScoreSave[i].base[ii].getHexesLinked());
+				player[i].base[ii].setMoney(-player[i].base[ii].getMoney());
+				player[i].base[ii].setMoney(playerScoreSave[i].base[ii].getMoney());
+				player[i].base[ii].setRank(playerScoreSave[i].base[ii].getRank());
+				player[i].base[ii].setHexNum(playerScoreSave[i].base[ii].getHexNum());
+				player[i].base[ii].setCol(playerScoreSave[i].base[ii].getCol());
+				player[i].base[ii].setRow(playerScoreSave[i].base[ii].getRow());
+				//player[i].base[ii].setNumFighters(-player[i].base[ii].getNumFighters());
+				//player[i].base[ii].setNumFighters(playerScoreSave[i].base[ii].getNumFighters());
+				
+				for (int iii=0;iii<player[i].base[ii].getNumFighters();iii++){
+					player[i].base[ii].fighter[iii].setAlive(playerScoreSave[i].base[ii].fighter[iii].isAlive());
+					player[i].base[ii].fighter[iii].setMoved(playerScoreSave[i].base[ii].fighter[iii].isMoved());
+					player[i].base[ii].fighter[iii].setBaseNum(playerScoreSave[i].base[ii].fighter[iii].getBaseNum());
+					player[i].base[ii].fighter[iii].setCost(playerScoreSave[i].base[ii].fighter[iii].getCost());
+					player[i].base[ii].fighter[iii].setRank(playerScoreSave[i].base[ii].fighter[iii].getRank());
+					player[i].base[ii].fighter[iii].setHexNum(playerScoreSave[i].base[ii].fighter[iii].getHexNum());
+					player[i].base[ii].fighter[iii].setX(playerScoreSave[i].base[ii].fighter[iii].getX());
+					player[i].base[ii].fighter[iii].setY(playerScoreSave[i].base[ii].fighter[iii].getY());
+				}
+			}
+		}
+	}
+	
+	public static void calcAiDefense(int player, int base){
+		// cycle thru player base hexes, finding which ones neighbor neighbor owned hexes that neighbor enemy hexes and that player is potential threat
+		// if is potential threat then mark hex a threat rating based off highest ranked fighter.
+		
+		
+	}
+	
+	public static void playAiTimer(final int p){
+		
+		timerAI.scheduleAtFixedRate(new TimerTask() {
+			
+            public void run() {
+            
+			if (player[p].base[bx].isAlive()){
+				selectBase(p,bx);
+				if (player[p].base[bx].getRank()<3){
+					if (player[p].base[bx].getMoney()>=(player[p].base[bx].getRank()+1)*BASE_UPGRADE_EXPENSE){
+						upgradeBase(p,bx);
+					}
+				}
+					
+				calcAiDefense(p, bx);
+				
+				while ((player[p].base[bx].getMoney()>=(5*FIGHTER_RANK_ONE_EXPENSE))&&(numBaseFighters(p,bx)<MAX_BASE_FIGHTERS)){
+					purchaseFighter(p,bx);
+					moveAiFighter(p,bx,selectedFighter);
+				}
+
+					while ((player[p].base[bx].fighter[fx].getRank()!=rx)&&(!availablePowerMove(p,bx,fx))&&(fx < player[p].base[bx].getNumFighters())){
+						fx++;
+					}
+
+					if (player[p].base[bx].fighter[fx].getRank()==rx){
+						if ((player[p].base[bx].fighter[fx].isAlive())&&(!player[p].base[bx].fighter[fx].isMoved())){
+							selectFighter(p,bx,fx);
+							moveAiFighter(p,bx,fx);
+						}
+					}else
+						fx++;
+			}
+			
+		if (fx >= player[p].base[bx].getNumFighters()){
+			rx++;
+			fx = -1;
+		}
+		if (rx >= 5){
+			bx++;
+			fx = -1;
+			rx = 1;
+		}
+
+		if (fx < player[p].base[bx].getNumFighters()){
+			fx++;
+		}
+		
+		if (bx >= player[p].getNumBases()){
+			timerAI.cancel();
+			endTurn();
+		}
+			xx++;
+		
+            }
+        }, delay, aiSpeed);
+		
+	}
+	
+	public static void moveAiFighter(int p, int b, int f){
+		setAiFighterMoves(p,b,f);
+		
+		if (gameStatus==GameStatus.GAME_ON){
+			hexLink();
+			boolean isClean;
+			do{ isClean=true;
+				checkDivision();
+				for (int x=0;x<BSIZE;x++){
+					if ((hexes[x].getState()!="neutral")&&(hexes[x].getState()!="stone")){
+						if (!hexes[x].isLinked()){
+							isClean=false;
+						}
+					}
+				}
+			}while (!isClean);
+			hexLink();
+			for (int n=0;n<6;n++){
+				if (selectedHex>=0)
+					checkBaseLink(selectedHex,p,selectedBase,n);
+			}
+		}
+	}
+	
+	public static void setMove(int p, int b, int f, int h, String type){
+		int ff;
+	//switch(type){
+		
+		if (type.equalsIgnoreCase("enemy fighter")){
+			player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setAlive(false);
+			player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setHexNum(-1);
+			player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setX(-1);
+			
+			if (hexes[player[p].base[b].fighter[f].getHexNum()].occupation.getOccupiedBy()!="base"){
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setOccupiedBy("empty");
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setFighter(-1);
+			}
+			player[p].setFightersKilled(player[p].getFightersKilled()+1);
+			placeFighterOnHex(h,p,b,f,hexes[h].getColumn(),hexes[h].getRow());
+			return;
+		}
+			
+		if ((type.equalsIgnoreCase("enemy div territory")) || (type.equalsIgnoreCase("enemy div neighbor territory"))){
+			if (hexes[h].occupation.getOccupiedBy().equalsIgnoreCase("enemy fighter")){
+				player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setAlive(false);
+				player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setHexNum(-1);
+				player[hexes[h].occupation.getPlayer()].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].setX(-1);
+			}
+			if (hexes[player[p].base[b].fighter[f].getHexNum()].occupation.getOccupiedBy()!="base"){
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setOccupiedBy("empty");
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setFighter(-1);
+			}
+			placeFighterOnHex(h,p,b,f,hexes[h].getColumn(),hexes[h].getRow());
+			return;
+		}
+		
+		if (type.equalsIgnoreCase("own fighter")){
+			ff=hexes[h].occupation.getFighter();
+			
+			if (player[p].base[b].fighter[ff].getHexNum()>=0)
+				combineFighters(p,b,f,ff);
+			return;
+		}
+		if (type.equalsIgnoreCase("own territory")){
+			//if (hexes[h].occupation.getOccupiedBy()=="fighter"){
+			//	ff=hexes[h].occupation.getFighter();
+			//	combineFighters(p,b,f,ff);
+			//	break;
+			//}
+			
+			if (hexes[player[p].base[b].fighter[f].getHexNum()].occupation.getOccupiedBy()!="base"){
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setOccupiedBy("empty");
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setFighter(-1);
+			}
+			
+			placeFighterOnHex(h,p,b,f,hexes[h].getColumn(),hexes[h].getRow());
+			return;
+		}
+			
+		if (type.equalsIgnoreCase("enemy base")){
+			if (hexes[player[p].base[b].fighter[f].getHexNum()].occupation.getOccupiedBy()!="base"){
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setOccupiedBy("empty");
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setFighter(-1);
+			}
+			sackBase(p,b,hexes[h].occupation.getPlayer(),hexes[h].occupation.getBase());
+			placeFighterOnHex(h,p,b,f,hexes[h].getColumn(),hexes[h].getRow());
+			return;
+		}
+			
+			//if ((hexes[h].occupation.getOccupiedBy()=="fighter")&&(hexes[h].getState()==player[p].getColor())){
+			//	ff=hexes[h].occupation.getFighter();
+			//	combineFighters(p,b,f,ff);
+			//	break;
+			//}
+			
+			if (hexes[player[p].base[b].fighter[f].getHexNum()].occupation.getOccupiedBy()!="base"){
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setOccupiedBy("empty");
+				hexes[player[p].base[b].fighter[f].getHexNum()].occupation.setFighter(-1);
+			}
+			
+			placeFighterOnHex(h,p,b,f,hexes[h].getColumn(),hexes[h].getRow());
+	}
+	
+	public static void setAiFighterMoves(int p, int b, int f){
+		setAiMoveLists(p,b,f);
+		
+		player[p].base[b].fighter[f].setDefend(false);
+		if ((checkBaseSurrounding(p,b,f))&&(player[p].base[b].getHexesLinked()>5))
+			player[p].base[b].fighter[f].setDefend(true);
+
+		selectAiMove(p,b,f);
+	}
+	
+	public static void selectAiMove(int p, int b, int f){
+		if (!intEnemyBaseTerList.isEmpty()){ // attack base first
+			selectedHex = intEnemyBaseTerList.get(rand.nextInt(intEnemyBaseTerList.size()));
+			setMove(p,b,f,selectedHex,"enemy base");
+			return;
+		}
+		if (!intEnemyBaseNeighborTerList.isEmpty()){ // attack base first
+			selectedHex = intEnemyBaseNeighborTerList.get(rand.nextInt(intEnemyBaseNeighborTerList.size()));
+			setMove(p,b,f,selectedHex,"neighbor enemy base");
+			return;
+		}
+		
+		if (!intEnemyTerDivList.isEmpty()){ // an enemy hex is divisible
+			selectedHex = intEnemyTerDivList.get(rand.nextInt(intEnemyTerDivList.size()));
+			setMove(p,b,f,selectedHex,"enemy div territory");
+			return;
+		}
+		
+		if (!intEnemyTerDivNeighborList.isEmpty()){ // an enemy divisible hex neighbor
+			selectedHex = intEnemyTerDivNeighborList.get(rand.nextInt(intEnemyTerDivNeighborList.size()));
+			setMove(p,b,f,selectedHex,"enemy div neighbor territory");
+			return;
+		}
+		
+		//int rnd=rand.nextInt(1);
+		//if (rnd==1){
+			if ((!intOwnFighterTerList.isEmpty())&&(!territorySafe(p,b))){ // combine with another fighter
+				int counter=0;
+				do{ counter++;
+					selectedHex = intOwnFighterTerList.get(rand.nextInt(intOwnFighterTerList.size()));
+				}while ((selectedHex!=player[p].base[b].fighter[f].getHexNum())&&(counter<intOwnFighterTerList.size())&&(isAffordableCombine(p,b,f,hexes[selectedHex].occupation.getFighter())));
+				if ((selectedHex!=player[p].base[b].fighter[f].getHexNum())&&(isAffordableCombine(p,b,f,hexes[selectedHex].occupation.getFighter()))){
+					setMove(p,b,f,selectedHex,"own fighter");
+					return;
+				}
+			}
+		//}
+		
+		if ((checkBaseSurrounding(p,b,f))&&(player[p].base[b].fighter[f].getRank()>player[p].base[b].getRank())&&(player[p].base[b].fighter[f].getRank()>=getBaseThreatLevel(p,b,f))){
+			for (int i=0;i<6;i++){
+				if (hexes[player[p].base[b].getHexNum()].neighbor[i]>=0){
+					if (hexes[hexes[player[p].base[b].getHexNum()].neighbor[i]].isHighlighted()){
+						selectedHex=hexes[player[p].base[b].getHexNum()].neighbor[i];
+						setMove(p,b,f,selectedHex,"defend base");
+						return;
+					}
+				}
+			}
+		}
+		
+		if (!intEnemyFighterTerList.isEmpty()){ // if no base to attack, attack a fighter
+			selectedHex = intEnemyFighterTerList.get(rand.nextInt(intEnemyFighterTerList.size()));
+			setMove(p,b,f,selectedHex,"enemy fighter");
+			return;
+		}
+		if (!intEnemyFighterNeighborTerList.isEmpty()){ // if no base to attack, attack a fighter
+			selectedHex = intEnemyFighterNeighborTerList.get(rand.nextInt(intEnemyFighterNeighborTerList.size()));
+			setMove(p,b,f,selectedHex,"neighbor enemy fighter");
+			return;
+		}
+		
+		boolean hasUpperRank=false;
+		for (int ff=0;ff<MAX_BASE_FIGHTERS;ff++){
+			if ((player[p].base[b].fighter[ff].isAlive())&&(player[p].base[b].fighter[ff].getRank()>1))
+				hasUpperRank=true;
+		}
+		
+		if (!hasUpperRank){
+			if (checkBaseSurrounding(p,b,f)){
+				int selectedHexCombine=-1;
+				int selectedHexDefault=-1;
+				for (int i=0;i<6;i++){
+					if (hexes[player[p].base[b].getHexNum()].neighbor[i]>=0){
+						if (hexes[hexes[player[p].base[b].getHexNum()].neighbor[i]].isHighlighted()){
+							if (hexes[hexes[player[p].base[b].getHexNum()].neighbor[i]].getState()==player[p].getColor()){
+								if (hexes[hexes[player[p].base[b].getHexNum()].neighbor[i]].occupation.getOccupiedBy()=="fighter"){
+									selectedHexCombine=hexes[player[p].base[b].getHexNum()].neighbor[i];
+								}
+								if (hexes[hexes[player[p].base[b].getHexNum()].neighbor[i]].occupation.getOccupiedBy()=="empty"){
+									selectedHexDefault=hexes[player[p].base[b].getHexNum()].neighbor[i];
+								}
+							}
+						}
+					}
+				}
+				if (selectedHexCombine>=0){
+					selectedHex=selectedHexCombine;
+					setMove(p,b,f,selectedHex,"own fighter");
+					return;
+				}else{
+					if (selectedHexDefault>=0){
+						selectedHex=selectedHexDefault;
+						setMove(p,b,f,selectedHex,"defend base");
+						return;
+					}
+				}
+			}
+		}
+		
+		if (player[p].base[b].fighter[f].getRank()>=2){
+		if (!intOwnTerList.isEmpty()){ // move to own territory where the hex is not safe
+			selectedHex = intOwnTerList.get(rand.nextInt(intOwnTerList.size()));
+			setMove(p,b,f,selectedHex,"own territory");
+			return;
+		}
+		}
+		
+		// level 1 fighter priority starts here
+		if (!intBaseLinkTerList.isEmpty()){ // no base or fighter to attack, then try to link bases
+			selectedHex = intBaseLinkTerList.get(rand.nextInt(intBaseLinkTerList.size()));
+			setMove(p,b,f,selectedHex,"link base");
+			return;
+		}
+		
+		// determine if a specific enemy hex will divide enemy territory, or if a move will set up a move that will divide
+		
+		if (!intbonusLinkTerList.isEmpty()){ // no enemies or enemy territory around, link up with bonus if possible
+			selectedHex = intbonusLinkTerList.get(rand.nextInt(intbonusLinkTerList.size()));
+			setMove(p,b,f,selectedHex,"bonus link");
+			return;
+		}
+		
+		if (!intEnemyTerList.isEmpty()){ // no base or fighter to attack, then capture enemy territory
+			selectedHex = intEnemyTerList.get(rand.nextInt(intEnemyTerList.size()));
+			setMove(p,b,f,selectedHex,"enemy territory");
+			return;
+		}
+		
+		if (getNearestOpenBonusHex(p,b,f)>=0){
+			selectedHex = getNearestHexMove(p,b,f,getNearestOpenBonusHex(p,b,f));
+			if (selectedHex>=0){
+				setMove(p,b,f,selectedHex,"bonus link");
+				return;
+			}
+		}
+		
+		if (!intNeutralTerList.isEmpty()&&!player[p].base[b].fighter[f].isDefend()){ // capture neutral territory if fighter is not defending
+			selectedHex = intNeutralTerList.get(rand.nextInt(intNeutralTerList.size()));
+			setMove(p,b,f,selectedHex,"neutral territory");
+			return;
+		}
+
+		if (!intNeutralTerList.isEmpty()&&(territorySafe(p,b))){ // capture neutral territory if fighter is not defending
+			selectedHex = intNeutralTerList.get(rand.nextInt(intNeutralTerList.size()));
+			setMove(p,b,f,selectedHex,"neutral territory");
+			return;
+		}
+		
+		//if (!intOwnFalseTerList.isEmpty()){ // move to own territory where the fighter is next to an enemy fighter
+		//	selectedHex = intOwnFalseTerList.get(rand.nextInt(intOwnFalseTerList.size()));
+		//	setMove(p,b,f,selectedHex,"own territory");
+		//	return;
+		//}
+		
+		if (!intOwnTerList.isEmpty()){ // move to own territory where the fighter is next to an enemy fighter
+			selectedHex = intOwnTerList.get(rand.nextInt(intOwnTerList.size()));
+			setMove(p,b,f,selectedHex,"own territory");
+			return;
+		}
+		
+		if (!intAllOwnTerList.isEmpty()){
+			selectedHex = intAllOwnTerList.get(rand.nextInt(intAllOwnTerList.size()));
+			setMove(p,b,f,selectedHex,"own territory");
+		}
+	}
+	
+	public static boolean territorySafe(int p, int b){
+		boolean safe=true;
+		
+			for (int h=0;h<BSIZE;h++){
+				if ((hexes[h].getState()==player[p].getColor())&&(hexes[h].occupation.getBase()==b)){
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()!=player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getPlayer()>-1)){
+								safe=false;
+							}
+							for (int iii=0;iii<6;iii++){
+								if (hexes[hexes[h].neighbor[ii]].neighbor[iii]>=0){
+									if ((hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].getState()!=player[p].getColor())&&(hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()>-1)){
+										safe=false;
+									}
+									for (int iiii=0;iiii<6;iiii++){
+										if (hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].neighbor[iiii]>=0){
+											if ((hexes[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].neighbor[iiii]].getState()!=player[p].getColor())&&(hexes[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].neighbor[iiii]].occupation.getPlayer()>-1)){
+												safe=false;
+											}
+										}
+									}
+								}
+							}
+						}
+					}	
+				}
+			}
+		
+		return safe;
+	}
+	
+	public static int getNearestHexMove(int p, int b, int f, int bs){
+		int h=0;
+		int ND=200;
+		int sel=-1;
+		int x; int y; int xy; int rt;
+		
+		for (int hex=0;hex<BSIZE;hex++){
+			if ((hexes[hex].isHighlighted())&&(hexes[hex].getState()!=player[p].getColor())){
+				x = (hexes[bonus[bs].getHexNum()].getColumn()-hexes[hex].getColumn());
+				y = (hexes[bonus[bs].getHexNum()].getRow()-hexes[hex].getRow());
+				x = x*x; y = y*y;
+				xy = x+y;
+				rt = (int) Math.sqrt(xy);
+				
+				if (rt<=ND){
+					sel=hex;
+					ND=rt;
+				}
+			}
+		}
+		
+		return sel;
+	}
+	
+	public static int getNearestOpenBonusHex(int p, int b, int f){
+		int h=0;
+		boolean open=true;
+		int ND=200;
+		int NB=-1;
+		int x; int y; int xy; int rt;
+		
+		for (int bs=0;bs<numBonus;bs++){
+			h=bonus[bs].getHexNum();
+			
+			for (int n=0;n<6;n++){
+				if (hexes[h].neighbor[n]>=0){
+					if (hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="fighter"){
+						if (player[hexes[hexes[h].neighbor[n]].occupation.getPlayer()].base[hexes[hexes[h].neighbor[n]].occupation.getBase()].fighter[hexes[hexes[h].neighbor[n]].occupation.getFighter()].getRank()>=player[p].base[b].fighter[f].getRank()){
+							open=false;
+							break;
+						}
+					}
+					
+					for (int nn=0;nn<6;nn++){
+						if (hexes[hexes[h].neighbor[n]].neighbor[nn]>=0){
+							if (hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getOccupiedBy()=="fighter"){
+								if (player[hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getPlayer()].base[hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getBase()].fighter[hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getFighter()].getRank()>=player[p].base[b].fighter[f].getRank()){
+									open=false;
+									break;
+								}
+							}
+							
+						}
+					}
+					
+					if (hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="base"){
+						if (player[hexes[hexes[h].neighbor[n]].occupation.getPlayer()].base[hexes[hexes[h].neighbor[n]].occupation.getBase()].getRank()>=player[p].base[b].fighter[f].getRank()){
+							open=false;
+							break;
+						}
+					}
+					
+					for (int nn=0;nn<6;nn++){
+						if (hexes[hexes[h].neighbor[n]].neighbor[nn]>=0){
+							if (hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getOccupiedBy()=="base"){
+								if (player[hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getPlayer()].base[hexes[hexes[hexes[h].neighbor[n]].neighbor[nn]].occupation.getBase()].getRank()>=player[p].base[b].fighter[f].getRank()){
+									open=false;
+									break;
+								}
+							}
+							
+						}
+					}
+				}
+			}
+			
+			if (open){
+				x = (hexes[h].getColumn()-player[p].base[b].getCol());
+				y = (hexes[h].getRow()-player[p].base[b].getRow());
+				x = x*x; y = y*y;
+				xy = x+y;
+				rt = (int) Math.sqrt(xy);
+				
+				if (rt<=ND){
+					NB=bs;
+					ND=rt;
+				}
+			}
+		}
+		return NB;
+	}
+	
+	public static boolean hexSafe(int p, int h){
+		boolean safe=true;
+		
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()!=player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getPlayer()>-1)){
+								safe=false;
+							}
+							for (int iii=0;iii<6;iii++){
+								if (hexes[hexes[h].neighbor[ii]].neighbor[iii]>=0){
+									if ((hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].getState()!=player[p].getColor())&&(hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()>-1)){
+										safe=false;
+									}
+								}
+							}
+						}
+					}	
+		
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()==player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getOccupiedBy()=="fighter")){
+								safe=true;
+							}
+						}
+					}
+					
+		return safe;
+	}
+	
+	public static void setDefensiveTer(int p, int h){
+		if (!hexSafe(p,h)){
+			intOwnTerList.add(h);
+		}
+	}
+	
+	public static boolean checkBaseSurrounding(int p, int b, int f){
+		boolean isSurrounded = false;
+		int h=player[p].base[b].getHexNum();
+		int bb;
+		int pp=-1;
+		
+		if (h==-1){
+			isSurrounded=false;
+			return isSurrounded;
+		}
+			
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()!=player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getPlayer()>-1)){
+								pp=hexes[hexes[h].neighbor[ii]].occupation.getPlayer();
+								bb=hexes[hexes[h].neighbor[ii]].occupation.getBase();
+								
+									if (hasThreat(p,b,pp,bb)){
+										isSurrounded=true;
+									}
+							}
+							for (int iii=0;iii<6;iii++){
+								if (hexes[hexes[h].neighbor[ii]].neighbor[iii]>=0){
+									if ((hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].getState()!=player[p].getColor())&&(hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()>-1)){
+										pp=hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer();
+										bb=hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getBase();
+										
+											if (hasThreat(p,b,pp,bb)){
+												isSurrounded=true;
+											}
+									}
+								}
+							}
+						}
+					}
+					
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()==player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getOccupiedBy()=="fighter")){
+								if (hexes[hexes[h].neighbor[ii]].occupation.getFighter()!=f){
+									if (player[p].base[b].fighter[hexes[hexes[h].neighbor[ii]].occupation.getFighter()].getRank()>player[p].base[b].getRank())
+										isSurrounded=false;
+								}
+							}
+						}
+					}
+
+		return isSurrounded;
+	}
+	
+	public static int getBaseThreatLevel(int p, int b, int f){
+		int highestLevel = 0;
+		int h=player[p].base[b].getHexNum();
+			
+					for (int ii=0;ii<6;ii++){
+						if (hexes[h].neighbor[ii]>=0){
+							if ((hexes[hexes[h].neighbor[ii]].getState()!=player[p].getColor())&&(hexes[hexes[h].neighbor[ii]].occupation.getPlayer()>-1)){
+								for (int ff=0;ff<MAX_BASE_FIGHTERS;ff++){
+									if (player[hexes[hexes[h].neighbor[ii]].occupation.getPlayer()].base[hexes[hexes[h].neighbor[ii]].occupation.getBase()].fighter[ff].isAlive()){
+										if (player[hexes[hexes[h].neighbor[ii]].occupation.getPlayer()].base[hexes[hexes[h].neighbor[ii]].occupation.getBase()].fighter[ff].getRank()>highestLevel){
+											highestLevel=player[hexes[hexes[h].neighbor[ii]].occupation.getPlayer()].base[hexes[hexes[h].neighbor[ii]].occupation.getBase()].fighter[ff].getRank();
+										}
+									}
+								}
+							}
+							for (int iii=0;iii<6;iii++){
+								if (hexes[hexes[h].neighbor[ii]].neighbor[iii]>=0){
+									if ((hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].getState()!=player[p].getColor())&&(hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()>-1)){
+										for (int ff=0;ff<MAX_BASE_FIGHTERS;ff++){
+											if (player[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()].base[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getBase()].fighter[ff].isAlive()){
+												if (player[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()].base[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getBase()].fighter[ff].getRank()>highestLevel){
+													highestLevel=player[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getPlayer()].base[hexes[hexes[hexes[h].neighbor[ii]].neighbor[iii]].occupation.getBase()].fighter[ff].getRank();
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+		return highestLevel;
+	}
+	
+	private static boolean hasThreat(int p, int b, int pp, int bb) {
+		boolean isThreat=false;
+		
+		for (int f=0;f<MAX_BASE_FIGHTERS;f++){
+			if ((player[pp].base[bb].fighter[f].isAlive())&&(player[pp].base[bb].fighter[f].getRank()>player[p].base[b].getRank()))
+				isThreat=true;
+		}
+		
+		return isThreat;
+	}
+
+	public static void setAiMoveLists(int p, int b, int f){ // priority
+		intBaseLinkTerList.clear();
+		intAllOwnTerList.clear();
+		intOwnTerList.clear(); // 7
+		intOwnFalseTerList.clear(); // 7
+		intOwnFighterTerList.clear(); // 6
+		intNeutralTerList.clear(); // 5
+		intbonusLinkTerList.clear(); // 4
+		intEnemyTerList.clear(); // 3
+		intEnemyTerDivList.clear();
+		intEnemyTerDivNeighborList.clear();
+		intEnemyFighterTerList.clear(); // 2
+		intEnemyFighterNeighborTerList.clear(); // 2
+		intEnemyBaseTerList.clear(); // 1
+		intEnemyBaseNeighborTerList.clear(); // 1
+		
+		for (int h=0;h<BSIZE;h++){
+			if (hexes[h].isHighlighted()){
+				
+				for (int n=0;n<6;n++){
+					if (hexes[h].neighbor[n]>=0){
+						if (hexes[hexes[h].neighbor[n]].isLinked()){
+							if (hexes[hexes[h].neighbor[n]].occupation.getPlayer()==p){
+								if (hexes[hexes[h].neighbor[n]].occupation.getBase()!=b){
+									intBaseLinkTerList.add(h);
+									break;
+								}
+							}
+						}
+					}
+				}
+				
+				
+				if (hexes[h].getState()==player[p].getColor()){
+					intAllOwnTerList.add(h);
+					
+					if (hexes[h].hasFalseIncome)
+						intOwnFalseTerList.add(h);
+					
+					if (hexes[h].occupation.getOccupiedBy()=="fighter"){
+						if (player[p].base[hexes[h].occupation.getBase()].fighter[hexes[h].occupation.getFighter()].getRank()<4)
+							intOwnFighterTerList.add(h);
+					}
+					else if (hexes[h].occupation.getOccupiedBy()=="empty")
+						setDefensiveTer(p,h);
+				}
+				
+				if (hexes[h].getState()=="neutral"){//&&(player[p].base[b].fighter[f].getRank()==1)){
+					intNeutralTerList.add(h);
+					
+					for (int n=0;n<6;n++){
+						if (hexes[h].neighbor[n]>=0){
+							if (hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="base"){
+								if (hexes[hexes[h].neighbor[n]].occupation.getPlayer()==p){
+									if (hexes[hexes[h].neighbor[n]].occupation.getBase()==b){
+										for (int i=0;i<6;i++)
+											intNeutralTerList.add(h);
+									}
+								}
+							}
+						}
+					}
+				}
+			
+				
+				
+				if ((hexes[h].getState()=="neutral")||(hexes[h].getState()!=player[p].getColor())){
+					for (int n=0;n<6;n++){
+						if (hexes[h].neighbor[n]>=0){
+							if (hexes[hexes[h].neighbor[n]].getRegionBonus() > 0){
+								intbonusLinkTerList.add(h);
+							}
+						}
+					}
+				}
+			
+				if ((hexes[h].getState()!=player[p].getColor())&&(hexes[h].getState()!="neutral")&&(hexes[h].getState()!="stone")){
+					intEnemyTerList.add(h);
+					int pp = hexes[h].occupation.getPlayer();
+					if (isHexDivisible(pp, h)){
+						intEnemyTerDivList.add(h);
+						addHexDivisibleNeighbors(h);
+					}
+					if (hexes[h].occupation.getOccupiedBy()=="fighter"){
+						intEnemyFighterTerList.add(h);
+					}
+					if (hexes[h].occupation.getOccupiedBy()=="base"){
+						intEnemyBaseTerList.add(h);
+					}
+				}
+				
+				if ((hexes[h].getState()!=player[p].getColor())){
+					
+					for (int n=0;n<6;n++){
+						if (hexes[h].neighbor[n]>=0){
+							if (hexes[hexes[h].neighbor[n]].getState()!=player[p].getColor()){
+							if (hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="fighter"){
+								intEnemyFighterNeighborTerList.add(h);
+								break;
+							}
+							}
+						}
+					}
+					
+					for (int n=0;n<6;n++){
+						if (hexes[h].neighbor[n]>=0){
+							if (hexes[hexes[h].neighbor[n]].getState()!=player[p].getColor()){
+							if (hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="base"){
+								intEnemyBaseNeighborTerList.add(h);
+								break;
+							}
+							}
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	
+	public static void addHexDivisibleNeighbors(int h){
+		for (int n = 0; n < 6; n++)
+			if (hexes[h].neighbor[n] > 0)
+				if (hexes[hexes[h].neighbor[n]].isHighlighted())
+					intEnemyTerDivNeighborList.add(hexes[h].neighbor[n]);
+	}
+	
+	public static boolean isHexDivisible(int p, int h){
+		int n = 0, flipTally = 0;
+		boolean flip = false, prevFlip = false;
+		
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		n = 2;
+		prevFlip = flip;
+			
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		n = 3;
+		if (prevFlip != flip)
+			flipTally++;
+		prevFlip = flip;
+			
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		n = 1;
+		if (prevFlip != flip)
+			flipTally++;
+		prevFlip = flip;
+		
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		n = 4;
+		if (prevFlip != flip)
+			flipTally++;
+		prevFlip = flip;
+		
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		n = 5;
+		if (prevFlip != flip)
+			flipTally++;
+		prevFlip = flip;
+		
+		if (hexes[h].neighbor[n] < 0)
+			flip = false;
+		if (hexes[h].neighbor[n] > 0){
+			if (hexes[hexes[h].neighbor[n]].getState() != player[p].getColor()){
+				flip = false;
+			}else{
+				flip = true;
+			}
+		}
+		if (prevFlip != flip)
+			flipTally++;
+		
+		if (flipTally >= 3)
+			return true;
+		
+		return false;
+	}
+	
+	public static boolean isUndefended(int h){
+		boolean isUnDefended=true;
+		for (int n=0;n<6;n++){
+			if (hexes[h].neighbor[n]>=0){
+				if (hexes[hexes[h].neighbor[n]].occupation.getPlayer()!=playerTurn){
+					if ((hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="fighter")||(hexes[hexes[h].neighbor[n]].occupation.getOccupiedBy()=="base")){
+						isUnDefended=false;
+					}
+				}
+			}
+		}
+		
+		return isUnDefended;
+	}
+	// method to handle key - down events 
+	public boolean keyPressed (Event e, int key) {
+		// space bar
+		if (key == 32){ 
+			endTurn();
+		}
+ 
+	return true;
+	}
+	
+	
+	public static void loadCustomMap() throws IOException{
+		int i=-1;
+		int data;
+		
+		File file = new File("Saved Map.txt");
+		Scanner scanner = new Scanner(file);
+		while(scanner.hasNextInt())
+		{ i++;
+		  data=scanner.nextInt();
+		  
+		  if (data==0)
+			  hexes[i].setState("neutral");
+		  if (data==1)
+			  hexes[i].setState("stone");
+		}
+		//loadMap.OpenFile();
+		
+		//for (int ii=0;i<BSIZE;i++)
+			//System.out.println("load "+hexVenture.hexes[ii].getState());
+		
+	}
+	
+	public static void loadPresetMap(int num) throws IOException{
+		int i=-1;
+		int data;
+		
+		//savePresetMap.writeToFile();
+		
+		if (num==1){
+			File file = new File("Preset Map One.txt");
+			Scanner scanner = new Scanner(file);
+			while(scanner.hasNextInt())
+			{ i++;
+			data=scanner.nextInt();
+		  
+			if (data==0)
+				hexes[i].setState("neutral");
+			if (data==1)
+				hexes[i].setState("stone");
+			}
+		}
+		//loadMap.OpenFile();
+	}
+	
+	public static void newGame(){
+		resetGame();
+		startGame();
+	}
+	
+	
+	public static void hexLinkNewBase(int p, int b) {
+				hexes[player[p].base[b].getHexNum()].setLinked(true);
+					System.out.println("pl"+player[p].base[b].getHexNum()+" "+hexes[player[p].base[b].getHexNum()].isLinked());
+				int iWork=0;
+				do{iWork++;
+					int hex=0;
+					int row=-1;
+					int col=0;
+					do{ row++;
+						hex=row;
+						do{ col++;
+						System.out.println("test"+hex);
+						if (hexes[hex].getState()==player[p].getColor()){System.out.println("pl");
+							int iii=-1;
+							do{iii++;
+								if ((hexes[hex].isLinked())&&(hexes[hex].occupation.getBase()==b)){
+									System.out.println("plpass");
+									if (hexes[hex].neighbor[iii]==-1){
+										hexes[hex].line[iii] = b;
+										continue;
+									}
+									if (hexes[hexes[hex].neighbor[iii]].getState()==player[p].getColor()){
+										hexes[hexes[hex].neighbor[iii]].setTallyLinked(true);
+										hexes[hexes[hex].neighbor[iii]].setLinked(true);
+										hexes[hexes[hex].neighbor[iii]].occupation.setBase(b);
+										hexes[hex].line[iii] = -1;
+					    			}else{
+										hexes[hex].line[iii] = b;
+									}
+					    			if (!hexes[hexes[hex].neighbor[iii]].isReal())
+										hexes[hex].line[iii] = b;
+								}
+							}while(iii<5);
+						}
+						hex+=ROWSIZE;
+						} while (col<COLSIZE);
+					} while (row<(ROWSIZE-1));
+				
+					row=ROWSIZE;
+					col=0;
+					do{ row--;
+						hex=row+((COLSIZE-1)*ROWSIZE);
+						do{ col++;
+						if (hexes[hex].getState()==player[p].getColor()){
+							int iii=-1;
+							do{iii++;
+								if ((hexes[hex].isLinked())&&(hexes[hex].occupation.getBase()==b)){
+									if (hexes[hex].neighbor[iii]==-1){
+										hexes[hex].line[iii] = b;
+										continue;
+									}
+									if (hexes[hexes[hex].neighbor[iii]].getState()==player[p].getColor()){
+										hexes[hexes[hex].neighbor[iii]].setTallyLinked(true);
+										hexes[hexes[hex].neighbor[iii]].setLinked(true);
+										hexes[hexes[hex].neighbor[iii]].occupation.setBase(b);
+										hexes[hex].line[iii] = -1;
+					    			}else{
+										hexes[hex].line[iii] = b;
+									}
+					    			if (!hexes[hexes[hex].neighbor[iii]].isReal())
+										hexes[hex].line[iii] = b;
+								}
+							}while(iii<5);
+						}
+						hex-=ROWSIZE;
+						} while (col<COLSIZE);
+					} while (row>0);
+					
+					//-------------------------------
+					
+					hex=-1;
+					do{ hex++;
+				    	if (hexes[hex].getState()==player[p].getColor()){
+				    		int iii=-1;
+				    		do{iii++;
+				    		if ((hexes[hex].isLinked())&&(hexes[hex].occupation.getBase()==b)){
+				    			if (hexes[hex].neighbor[iii]==-1){
+				    				hexes[hex].line[iii] = b;
+									continue;
+								}
+				    			if (hexes[hexes[hex].neighbor[iii]].getState()==player[p].getColor()){
+				    				hexes[hexes[hex].neighbor[iii]].setTallyLinked(true);
+				    				hexes[hexes[hex].neighbor[iii]].setLinked(true);
+				    				hexes[hexes[hex].neighbor[iii]].occupation.setBase(b);
+				    				hexes[hex].line[iii] = -1;
+				    			}else{
+									hexes[hex].line[iii] = b;
+								}
+				    			if (!hexes[hexes[hex].neighbor[iii]].isReal())
+									hexes[hex].line[iii] = b;
+				    		}
+				    		}while(iii<5);
+
+				    	}
+					} while (hex<(BSIZE)-1);
+				
+					hex=BSIZE;
+					
+					do{ hex--;
+					if (hexes[hex].getState()==player[p].getColor()){
+			    		int iii=-1;
+			    		do{iii++;
+			    		if ((hexes[hex].isLinked())&&(hexes[hex].occupation.getBase()==b)){
+			    			if (hexes[hex].neighbor[iii]==-1){
+			    				hexes[hex].line[iii] = b;
+								continue;
+							}
+			    			if (hexes[hexes[hex].neighbor[iii]].getState()==player[p].getColor()){
+			    				hexes[hexes[hex].neighbor[iii]].setTallyLinked(true);
+			    				hexes[hexes[hex].neighbor[iii]].setLinked(true);
+			    				hexes[hexes[hex].neighbor[iii]].occupation.setBase(b);
+			    				hexes[hex].line[iii] = -1;
+			    			}else{
+								hexes[hex].line[iii] = b;
+							}
+			    			if (!hexes[hexes[hex].neighbor[iii]].isReal())
+								hexes[hex].line[iii] = b;
+			    		}
+			    		}while(iii<5);
+
+			    	}
+					
+					if (iWork==5){
+		    			if (hexes[hex].getState()==player[p].getColor()){
+		    				if (hexes[hex].isTallyLinked()){
+		    					if (hexes[hex].occupation.getBase()==b)
+		    						player[p].base[b].setHexesLinked(1);
+		    				}
+		    			}
+		    		}
+					
+					} while (hex>0);
+					
+				}while(iWork<6);
+	}
+	
+	
+	
+	boolean hasNeighbor = false;
+		for (int h = 0; h < surroundings.size(); h++){
+			for (int n=0;n<6;n++){
+				if (testHexes[surroundings.get(h)].neighbor[n]>=0){
+					if ((testHexes[testHexes[surroundings.get(h)].neighbor[n]].occupation.getPlayer() == p) && (testHexes[testHexes[surroundings.get(h)].neighbor[n]].occupation.getBase() == b)){
+						
+						hasNeighbor = false;
+						for (int nn=0;nn<6;nn++){
+							if (testHexes[testHexes[surroundings.get(h)].neighbor[n]].neighbor[nn]>=0){
+								if ((testHexes[testHexes[testHexes[surroundings.get(h)].neighbor[n]].neighbor[nn]].occupation.getPlayer() != p) && (testHexes[testHexes[testHexes[surroundings.get(h)].neighbor[n]].neighbor[nn]].occupation.getBase() > -1)){
+									hasNeighbor = true;
+									break;
+								}	
+							}else{
+								hasNeighbor = true;
+								break;
+							}
+						}
+						
+						if (!hasNeighbor){
+							if (testHexes[testHexes[surroundings.get(h)].neighbor[n]].occupation.getOccupiedBy() != "base"){ // is the hex defended well enough?
+								testPlayer[p].base[b].vulSurroundings.add(testHexes[surroundings.get(h)].neighbor[n]); // add hex that is in 1 hex from outer territory if possible
+							}	
+						}else{
+							//player[p].base[b].vulSurroundings.add(surroundings.get(h)); // otherwise add outer hex next to enemy territory
+						}
+					}
+				}
+			}
+		}
+		
+		
+		
+		public void setHexDefenseRank(int p, int b, int ff){
+		for (int h = 0; h < hexVenture.BSIZE; h++)
+			if (testHexes[h].occupation.getPlayer() == p)
+				testHexes[h].setDefendRank(-1);
+			
+		for (int rank = 0; rank < 5; rank++){
+				if (!testPlayer[p].base[b].isAlive())
+					continue;
+				
+				int hex = testPlayer[p].base[b].getHexNum();
+				testHexes[hex].setDefendRank(testPlayer[p].base[b].getRank());
+				
+				for (int n=0;n<6;n++){
+					if (testHexes[hex].neighbor[n]>=0){
+						if ((testHexes[testHexes[hex].neighbor[n]].occupation.getPlayer() == p) && (testHexes[testHexes[hex].neighbor[n]].occupation.getBase() == b)){
+							testHexes[testHexes[hex].neighbor[n]].setDefendRank(testPlayer[p].base[b].getRank());
+						}
+					}
+				}
+				
+				for (int f = 0; f < 60; f++){
+					if (testPlayer[p].base[b].fighter[f].getRank() != rank)
+						continue;
+					if (!testPlayer[p].base[b].fighter[f].isAlive())
+						continue;
+					for (int h = 0; h < hexVenture.BSIZE; h++){
+						if ((testHexes[h].occupation.getPlayer() != p) && (testHexes[h].occupation.getBase() != b))
+							continue;
+
+						hex = testPlayer[p].base[b].fighter[f].getHexNum();
+						testHexes[hex].setDefendRank(testPlayer[p].base[b].fighter[f].getRank());
+		
+						for (int n=0;n<6;n++){
+							if (testHexes[hex].neighbor[n]>=0){
+								if ((testHexes[testHexes[hex].neighbor[n]].occupation.getPlayer() == p) && (testHexes[testHexes[hex].neighbor[n]].occupation.getBase() == b)){
+									testHexes[testHexes[hex].neighbor[n]].setDefendRank(testPlayer[p].base[b].fighter[f].getRank());
+								}
+							}
+						}
+					}
+				}
+		}
+	}
